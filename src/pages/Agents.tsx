@@ -28,7 +28,10 @@ import {
   Hammer,
   ToggleLeft,
   ToggleRight,
-  Link
+  Link,
+  FileText,
+  MessageCircle,
+  Send
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -65,6 +68,9 @@ export const Agents: React.FC = () => {
     { id: 'vision', name: 'Vision AI', description: 'Analyze images & video' },
     { id: 'memory', name: 'Vector Memory', description: 'Long-term context recall' },
     { id: 'mail', name: 'SMTP Proxy', description: 'Send/Receive emails' },
+    { id: 'doc_analysis', name: 'Analisis Dokumen', description: 'Ekstraksi data & ringkasan PDF/Docx' },
+    { id: 'whatsapp', name: 'Kirim Pesan WhatsApp', description: 'Komunikasi via Official/Unofficial API' },
+    { id: 'telegram', name: 'Kirim Pesan Telegram', description: 'Bot & User account automation' },
   ];
 
   const [agents, setAgents] = useState<Agent[]>([
@@ -222,6 +228,21 @@ export const Agents: React.FC = () => {
      setShowToolLibrary(false);
   };
 
+  const renderToolIcon = (toolId: string, size: number = 14) => {
+    const iconMap: Record<string, React.ReactNode> = {
+      search: <Globe size={size} />,
+      code: <Code size={size} />,
+      file: <Settings2 size={size} />, // Fallback icon for file
+      vision: <Zap size={size} />,
+      memory: <Brain size={size} />,
+      mail: <Send size={size} />,
+      doc_analysis: <FileText size={size} />,
+      whatsapp: <MessageCircle size={size} />,
+      telegram: <Send size={size} />,
+    };
+    return iconMap[toolId] || <Link size={size} />;
+  };
+
   const filteredAgents = agents.filter(a => 
     a.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     a.role.toLowerCase().includes(searchQuery.toLowerCase())
@@ -372,34 +393,6 @@ export const Agents: React.FC = () => {
               </div>
 
               <div className="space-y-8 flex-1 overflow-y-auto pr-2 scrollbar-hide pb-20">
-                {/* TOOLBOX SECTION */}
-                <div>
-                  <h4 className="text-[10px] font-bold text-text-dim uppercase tracking-[.3em] mb-4 flex items-center gap-2">
-                    <Briefcase size={12} className="text-accent" /> Agent Toolbox
-                  </h4>
-                  <div className="grid grid-cols-1 gap-2">
-                    {selectedAgent.tools?.map((tool) => (
-                      <div key={tool.id} className="p-4 rounded-2xl bg-surface-lighter/30 border border-white/5 flex items-center justify-between group hover:border-accent/30 transition-all">
-                        <div className="flex items-center gap-3">
-                           <div className={`p-2 rounded-lg ${tool.enabled ? 'bg-accent/10 text-accent' : 'bg-white/5 text-text-dim'} transition-colors`}>
-                              {tool.id === 'search' ? <Globe size={16} /> : <Code size={16} />}
-                           </div>
-                           <div>
-                              <p className={`text-xs font-bold leading-none mb-1 ${tool.enabled ? 'text-white' : 'text-text-dim'}`}>{tool.name}</p>
-                              <p className="text-[10px] text-text-dim opacity-60 font-medium">{tool.description}</p>
-                           </div>
-                        </div>
-                        <button className={`w-10 h-5 rounded-full relative transition-all ${tool.enabled ? 'bg-accent shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-surface-lighter ring-1 ring-white/10'}`}>
-                           <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${tool.enabled ? 'right-1' : 'left-1'}`} />
-                        </button>
-                      </div>
-                    ))}
-                    <button className="py-3 px-4 rounded-xl border border-dashed border-white/10 text-[10px] font-bold text-text-dim uppercase hover:border-accent/40 hover:text-white transition-all flex items-center justify-center gap-2">
-                       <Plus size={12} /> Register Custom Tool
-                    </button>
-                  </div>
-                </div>
-
                 {/* SANDBOX SECTION */}
                 <div className="pt-4">
                   <h4 className="text-[10px] font-bold text-text-dim uppercase tracking-[.3em] mb-4 flex items-center gap-2">
@@ -509,7 +502,7 @@ export const Agents: React.FC = () => {
                          <div key={tool.id} className="p-3 rounded-xl bg-surface-lighter/30 border border-white/5 flex items-center justify-between group">
                             <div className="flex items-center gap-3">
                                <div className={`p-2 rounded-lg ${tool.enabled ? 'bg-accent/10 text-accent' : 'bg-white/5 text-text-dim/40'}`}>
-                                  {tool.id === 'search' ? <Globe size={14} /> : tool.id === 'code' ? <Code size={14} /> : <Link size={14} />}
+                                  {renderToolIcon(tool.id)}
                                </div>
                                <div>
                                   <p className={`text-[11px] font-bold ${tool.enabled ? 'text-white' : 'text-text-dim/60'}`}>{tool.name}</p>
@@ -545,9 +538,14 @@ export const Agents: React.FC = () => {
                                     onClick={() => handleAddTool(selectedAgent.id, tool)}
                                     className="w-full text-left p-3 rounded-xl bg-surface-lighter/50 hover:bg-accent/10 border border-white/5 hover:border-accent/30 transition-all flex items-center justify-between group"
                                   >
-                                     <div>
-                                        <p className="text-[10px] font-bold text-white group-hover:text-accent transition-colors">{tool.name}</p>
-                                        <p className="text-[8px] text-text-dim leading-tight">{tool.description}</p>
+                                     <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-lg bg-surface text-text-dim group-hover:text-accent group-hover:bg-accent/10 transition-all">
+                                           {renderToolIcon(tool.id, 12)}
+                                        </div>
+                                        <div>
+                                           <p className="text-[10px] font-bold text-white group-hover:text-accent transition-colors">{tool.name}</p>
+                                           <p className="text-[8px] text-text-dim leading-tight">{tool.description}</p>
+                                        </div>
                                      </div>
                                      <Plus size={12} className="text-text-dim group-hover:text-accent" />
                                   </button>
