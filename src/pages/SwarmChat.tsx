@@ -13,7 +13,10 @@ import {
   Circle,
   Hash,
   X,
-  Play
+  Play,
+  FileText,
+  MessageCircle,
+  Zap
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -88,11 +91,77 @@ export const SwarmChat: React.FC = () => {
   ]);
 
   const [input, setInput] = useState('');
+  const [isAutomating, setIsAutomating] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const simulateAutomation = () => {
+    if (isAutomating) return;
+    setIsAutomating(true);
+
+    const steps = [
+      {
+        delay: 500,
+        msg: {
+          id: 'auto-1',
+          sender: { name: 'Lead Orchestrator', role: 'Coordinator', avatar: 'LO', color: 'text-indigo-400' },
+          content: 'AUTOPILOT INITIATED: Triggering automated document analysis & notification workflow.',
+          type: 'action' as const,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      },
+      {
+        delay: 2000,
+        msg: {
+          id: 'auto-2',
+          sender: { name: 'Analyst-Omega', role: 'Doc Analyst', avatar: 'AO', color: 'text-amber-400' },
+          content: 'SYSTEM: Loading "Report_Q3_Strategic.pdf". Executing [Analisis Dokumen] module...',
+          type: 'thought' as const,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      },
+      {
+        delay: 4500,
+        msg: {
+          id: 'auto-3',
+          sender: { name: 'Analyst-Omega', role: 'Doc Analyst', avatar: 'AO', color: 'text-amber-400' },
+          content: 'ANALYSIS COMPLETE: Key findings — 12% increase in regional efficiency, 4 critical risk nodes identified.',
+          type: 'action' as const,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      },
+      {
+        delay: 6000,
+        msg: {
+          id: 'auto-4',
+          sender: { name: 'Lead Orchestrator', role: 'Coordinator', avatar: 'LO', color: 'text-indigo-400' },
+          content: 'Routing report summary to Human Supervisor via [Telegram Integration]...',
+          type: 'delegation' as const,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      },
+      {
+        delay: 8000,
+        msg: {
+          id: 'auto-5',
+          sender: { name: 'Telegram Bot', role: 'Notifier', avatar: 'TG', color: 'text-sky-400' },
+          content: '✓ [TELEGRAM] Message Sent to Supervisor: "Analyst-Omega has completed the Q3 Report. Summary and Risk Nodes are available in the Intelligence Portal."',
+          type: 'consensus' as const,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      }
+    ];
+
+    steps.forEach((step, index) => {
+      setTimeout(() => {
+        setMessages(prev => [...prev, step.msg]);
+        if (index === steps.length - 1) setIsAutomating(false);
+      }, step.delay);
+    });
+  };
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +287,14 @@ export const SwarmChat: React.FC = () => {
                     className="w-full py-3 bg-accent text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
                   >
                      <Play size={14} /> Launch Mission
+                  </button>
+                  <button 
+                    disabled={isAutomating}
+                    onClick={simulateAutomation}
+                    className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 ${isAutomating ? 'bg-surface-lighter text-text-dim cursor-not-allowed' : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20'}`}
+                  >
+                     {isAutomating ? <Activity size={14} className="animate-spin" /> : <Zap size={14} />}
+                     Automate Workflow
                   </button>
                   <button 
                     onClick={() => {
