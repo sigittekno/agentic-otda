@@ -1,0 +1,14 @@
+{
+  "name": "Agentic AI Dashboard",
+  "description": "A production-grade control panel for AI browser agents with real-time execution monitoring, live browser preview, and memory management.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "Real-time Monitoring",
+    "Agent Control",
+    "Log Visualization",
+    "Memory Management"
+  ]
+}
