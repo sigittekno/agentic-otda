@@ -14,7 +14,8 @@ import {
   AlertCircle,
   X,
   Database,
-  ArrowRight
+  ArrowRight,
+  Activity
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -57,6 +58,10 @@ export const Deployment: React.FC = () => {
     type: 'cron' as 'cron' | 'webhook',
     config: ''
   });
+  const [logs, setLogs] = useState<{ id: string; time: string; triggerName: string; status: 'success' | 'fail' }[]>([
+    { id: 'l1', time: '14:32:10', triggerName: 'Daily Research Report', status: 'success' },
+    { id: 'l2', time: '10:15:42', triggerName: 'Shopify Order Handler', status: 'success' },
+  ]);
 
   const handleCreate = () => {
     if (!newTrigger.name || !newTrigger.config) return;
@@ -74,9 +79,22 @@ export const Deployment: React.FC = () => {
     setTriggers([trigger, ...triggers]);
     setShowCreate(false);
     setNewTrigger({ name: '', workflow: 'General-Agent', type: 'cron', config: '' });
+    
+    // Add create log
+    const logId = Date.now().toString();
+    setLogs(prev => [{ id: logId, time: new Date().toLocaleTimeString(), triggerName: `Created: ${trigger.name}`, status: 'success' }, ...prev]);
+  };
+
+  const handleTest = (name: string) => {
+    const logId = Date.now().toString();
+    setLogs(prev => [{ id: logId, time: new Date().toLocaleTimeString(), triggerName: `Test: ${name}`, status: 'success' }, ...prev.slice(0, 4)]);
   };
 
   const handleDelete = (id: string) => {
+    const trigger = triggers.find(t => t.id === id);
+    if (trigger) {
+      setLogs(prev => [{ id: Date.now().toString(), time: new Date().toLocaleTimeString(), triggerName: `Deleted: ${trigger.name}`, status: 'fail' }, ...prev]);
+    }
     setTriggers(triggers.filter(t => t.id !== id));
   };
 
@@ -148,6 +166,13 @@ export const Deployment: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
+                   <button 
+                      onClick={() => handleTest(trigger.name)}
+                      className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all flex items-center gap-2 group/btn"
+                   >
+                      <Play size={14} className="group-hover/btn:scale-110" />
+                      <span className="text-[10px] font-bold uppercase hidden sm:inline">Test</span>
+                   </button>
                    <button className="p-2 rounded-lg bg-surface-lighter text-text-dim hover:text-white transition-colors">
                       <Settings2 size={16} />
                    </button>
@@ -220,6 +245,32 @@ export const Deployment: React.FC = () => {
                       <span className="text-text-dim">{s.label}</span>
                       <span className="text-emerald-500 font-bold tracking-tighter">{s.status}</span>
                    </div>
+                 ))}
+              </div>
+           </GlassCard>
+
+           <GlassCard className="p-6">
+              <h3 className="font-bold text-white mb-6 flex items-center gap-2">
+                 <Activity size={18} className="text-accent" />
+                 Live Activity Logs
+              </h3>
+              <div className="space-y-3">
+                 {logs.slice(0, 5).map((log, li) => (
+                   <motion.div 
+                     initial={{ opacity: 0, x: 10 }}
+                     animate={{ opacity: 1, x: 0 }}
+                     key={log.id} 
+                     className="flex items-center justify-between p-3 rounded-xl bg-surface-lighter/30 border border-white/5"
+                   >
+                      <div className="flex items-center gap-3">
+                         <div className={`w-1.5 h-1.5 rounded-full ${log.status === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                         <div>
+                            <p className="text-[11px] font-bold text-white leading-none mb-1">{log.triggerName}</p>
+                            <p className="text-[9px] text-text-dim">{log.time}</p>
+                         </div>
+                      </div>
+                      <span className="text-[8px] font-black text-white/20 uppercase tracking-widest italic">Autonomous Run</span>
+                   </motion.div>
                  ))}
               </div>
            </GlassCard>

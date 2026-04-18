@@ -20,7 +20,8 @@ import {
   MessageSquareText,
   ShieldCheck,
   ChevronRight,
-  Bot
+  Bot,
+  Briefcase
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -32,11 +33,22 @@ interface Agent {
   color: string;
   model: string;
   capabilities: string[];
+  tools: { id: string; name: string; enabled: boolean; description: string }[];
   status: 'active' | 'idle' | 'training';
   tasksCompleted: number;
+  config: {
+    temperature: number;
+    maxTokens: number;
+    budgetLimit: number;
+  };
 }
 
 export const Agents: React.FC = () => {
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [sandboxInput, setSandboxInput] = useState('');
+  const [sandboxMessages, setSandboxMessages] = useState<{role: 'user' | 'agent', text: string}[]>([]);
+  const [isSimulating, setIsSimulating] = useState(false);
+
   const [agents, setAgents] = useState<Agent[]>([
     {
       id: '1',
@@ -46,8 +58,14 @@ export const Agents: React.FC = () => {
       color: 'bg-indigo-500',
       model: 'Gemini 1.5 Pro',
       capabilities: ['Reasoning', 'Delegation', 'Planning'],
+      tools: [
+        { id: 'search', name: 'Google Search', enabled: true, description: 'Real-time web access' },
+        { id: 'code', name: 'Code Sandbox', enabled: true, description: 'Execute JS/Python' },
+        { id: 'sql', name: 'SQL Query', enabled: false, description: 'Database read/write' }
+      ],
       status: 'active',
-      tasksCompleted: 428
+      tasksCompleted: 428,
+      config: { temperature: 0.2, maxTokens: 4096, budgetLimit: 50 }
     },
     {
       id: '2',
@@ -57,25 +75,18 @@ export const Agents: React.FC = () => {
       color: 'bg-emerald-500',
       model: 'Gemini 2.0 Flash',
       capabilities: ['Web Search', 'HTML Parsing', 'Summarization'],
+      tools: [
+        { id: 'search', name: 'Google Search', enabled: true, description: 'Real-time web access' },
+        { id: 'extract', name: 'X-Ray Scraper', enabled: true, description: 'JS Rendering bypass' }
+      ],
       status: 'active',
-      tasksCompleted: 1205
-    },
-    {
-      id: '3',
-      name: 'Analyst-Omega',
-      role: 'Strategist',
-      avatar: 'AO',
-      color: 'bg-amber-500',
-      model: 'Gemini 1.5 Pro',
-      capabilities: ['Market Analysis', 'Sentiment', 'Forecasting'],
-      status: 'idle',
-      tasksCompleted: 89
+      tasksCompleted: 1205,
+      config: { temperature: 0, maxTokens: 2048, budgetLimit: 10 }
     }
   ]);
 
   const [showCreate, setShowCreate] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
   const [newAgent, setNewAgent] = useState({
     name: '',
@@ -94,8 +105,13 @@ export const Agents: React.FC = () => {
       color: 'bg-accent',
       model: newAgent.model,
       capabilities: ['General AI', 'Context Awareness'],
+      tools: [
+        { id: 'search', name: 'Google Search', enabled: true, description: 'Real-time web access' },
+        { id: 'code', name: 'Code Sandbox', enabled: true, description: 'Execute JS/Python' }
+      ],
       status: 'active',
-      tasksCompleted: 0
+      tasksCompleted: 0,
+      config: { temperature: 0.7, maxTokens: 2048, budgetLimit: 20 }
     };
     setAgents([...agents, agent]);
     setShowCreate(false);
@@ -243,14 +259,103 @@ export const Agents: React.FC = () => {
                     <p className="text-[9px] font-bold text-text-dim uppercase tracking-widest mb-1">Intelligence</p>
                     <p className="text-xs font-black text-white">{selectedAgent.model}</p>
                   </div>
-                  <div className="p-4 rounded-2xl bg-surface-lighter/50 border border-white/5 text-left">
-                    <p className="text-[9px] font-bold text-text-dim uppercase tracking-widest mb-1">Latency</p>
-                    <p className="text-xs font-black text-emerald-500">Fast (42ms)</p>
+                  <div className="p-4 rounded-2xl bg-surface-lighter/50 border border-white/5 text-left relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <p className="text-[9px] font-bold text-text-dim uppercase tracking-widest mb-1">Monthly Cap</p>
+                    <p className="text-xs font-black text-emerald-500">${selectedAgent.config.budgetLimit}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-8 flex-1">
+              <div className="space-y-8 flex-1 overflow-y-auto pr-2 scrollbar-hide pb-20">
+                {/* TOOLBOX SECTION */}
+                <div>
+                  <h4 className="text-[10px] font-bold text-text-dim uppercase tracking-[.3em] mb-4 flex items-center gap-2">
+                    <Briefcase size={12} className="text-accent" /> Agent Toolbox
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2">
+                    {selectedAgent.tools?.map((tool) => (
+                      <div key={tool.id} className="p-4 rounded-2xl bg-surface-lighter/30 border border-white/5 flex items-center justify-between group hover:border-accent/30 transition-all">
+                        <div className="flex items-center gap-3">
+                           <div className={`p-2 rounded-lg ${tool.enabled ? 'bg-accent/10 text-accent' : 'bg-white/5 text-text-dim'} transition-colors`}>
+                              {tool.id === 'search' ? <Globe size={16} /> : <Code size={16} />}
+                           </div>
+                           <div>
+                              <p className={`text-xs font-bold leading-none mb-1 ${tool.enabled ? 'text-white' : 'text-text-dim'}`}>{tool.name}</p>
+                              <p className="text-[10px] text-text-dim opacity-60 font-medium">{tool.description}</p>
+                           </div>
+                        </div>
+                        <button className={`w-10 h-5 rounded-full relative transition-all ${tool.enabled ? 'bg-accent shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-surface-lighter ring-1 ring-white/10'}`}>
+                           <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${tool.enabled ? 'right-1' : 'left-1'}`} />
+                        </button>
+                      </div>
+                    ))}
+                    <button className="py-3 px-4 rounded-xl border border-dashed border-white/10 text-[10px] font-bold text-text-dim uppercase hover:border-accent/40 hover:text-white transition-all flex items-center justify-center gap-2">
+                       <Plus size={12} /> Register Custom Tool
+                    </button>
+                  </div>
+                </div>
+
+                {/* SANDBOX SECTION */}
+                <div className="pt-4">
+                  <h4 className="text-[10px] font-bold text-text-dim uppercase tracking-[.3em] mb-4 flex items-center gap-2">
+                    <Zap size={12} className="text-amber-400" /> Interaction Sandbox
+                  </h4>
+                  <div className="bg-black/40 rounded-2xl border border-white/5 overflow-hidden">
+                    <div className="h-48 overflow-y-auto p-4 space-y-3 scrollbar-hide bg-black/20">
+                       {sandboxMessages.length === 0 && (
+                          <div className="h-full flex flex-col items-center justify-center opacity-30">
+                             <MessageSquareText size={24} className="mb-2" />
+                             <p className="text-[10px] font-medium italic">Staging area. Test the persona here.</p>
+                          </div>
+                       )}
+                       {sandboxMessages.map((m, i) => (
+                          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                             <div className={`max-w-[80%] p-3 rounded-2xl text-[11px] leading-tight ${m.role === 'user' ? 'bg-accent text-white rounded-tr-none' : 'bg-surface-lighter text-text-main rounded-tl-none border border-white/5'}`}>
+                                {m.text}
+                             </div>
+                          </div>
+                       ))}
+                       {isSimulating && (
+                          <div className="flex justify-start">
+                             <div className="p-3 bg-surface-lighter rounded-2xl flex gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce delay-100" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-bounce delay-200" />
+                             </div>
+                          </div>
+                       )}
+                    </div>
+                    <div className="p-3 bg-surface-lighter/50 border-t border-white/5">
+                       <div className="relative">
+                          <input 
+                            type="text" 
+                            disabled={isSimulating}
+                            placeholder="Test his logic..."
+                            value={sandboxInput}
+                            onChange={(e) => setSandboxInput(e.target.value)}
+                            onKeyDown={(e) => {
+                               if (e.key === 'Enter') {
+                                  const text = sandboxInput;
+                                  setSandboxMessages([...sandboxMessages, { role: 'user', text }]);
+                                  setSandboxInput('');
+                                  setIsSimulating(true);
+                                  setTimeout(() => {
+                                     setSandboxMessages(prev => [...prev, { role: 'agent', text: "Analyzing your request based on my specialized persona and active toolbox. How can I assist further?" }]);
+                                     setIsSimulating(false);
+                                  }, 1500);
+                               }
+                            }}
+                            className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-accent transition-all"
+                          />
+                          <button className="absolute right-2 top-1/2 -translate-y-1/2 text-accent p-1 hover:scale-110 active:scale-95 transition-all">
+                             <ChevronRight size={16} />
+                          </button>
+                       </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <h4 className="text-[10px] font-bold text-text-dim uppercase tracking-[.3em] mb-4 flex items-center gap-2">
                     <Terminal size={12} className="text-accent" /> Brain Configuration

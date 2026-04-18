@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Circle,
   Hash,
-  X
+  X,
+  Play
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -166,7 +167,7 @@ export const SwarmChat: React.FC = () => {
                ))}
             </div>
 
-            <div className="mt-6 pt-6 border-t border-border-dim/50">
+            <div className="mt-6 pt-6 border-t border-border-dim/50 space-y-4">
                <div className="bg-accent/5 rounded-2xl p-4 border border-accent/10">
                   <p className="text-[10px] font-bold text-accent uppercase tracking-widest mb-2 flex items-center gap-2">
                      <Share2 size={12} /> Resource Usage
@@ -180,6 +181,68 @@ export const SwarmChat: React.FC = () => {
                         <span className="text-text-main font-bold">65%</span>
                      </div>
                   </div>
+               </div>
+
+               <div className="space-y-2">
+                  <button 
+                    onClick={() => {
+                        const missionMsg: SwarmMessage = {
+                          id: Date.now().toString(),
+                          sender: { name: 'Lead Orchestrator', role: 'Coordinator', avatar: 'LO', color: 'text-indigo-400' },
+                          content: 'MISSION INITIALIZED: Executing [Competitive Intelligence Swarm].',
+                          type: 'action',
+                          timestamp: new Date().toLocaleTimeString()
+                        };
+                        setMessages(prev => [...prev, missionMsg]);
+                        
+                        setTimeout(() => {
+                           setMessages(prev => [...prev, {
+                              id: (Date.now()+1).toString(),
+                              sender: { name: 'Crawler-Alpha', role: 'Data Extractor', avatar: 'CA', color: 'text-emerald-400' },
+                              content: 'Scraping competitor pricing from 4 tier-1 retailers...',
+                              type: 'thought',
+                              timestamp: new Date().toLocaleTimeString()
+                           }]);
+                        }, 2000);
+
+                        setTimeout(() => {
+                           setMessages(prev => [...prev, {
+                              id: (Date.now()+2).toString(),
+                              sender: { name: 'Analyst-Omega', role: 'Strategist', avatar: 'AO', color: 'text-amber-400' },
+                              content: 'Analyzing price elasticity based on Crawler results. 14% margin delta identified.',
+                              type: 'thought',
+                              timestamp: new Date().toLocaleTimeString()
+                           }]);
+                        }, 4000);
+                    }}
+                    className="w-full py-3 bg-accent text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                  >
+                     <Play size={14} /> Launch Mission
+                  </button>
+                  <button 
+                    onClick={() => {
+                       setMessages(prev => [...prev, {
+                          id: Date.now().toString(),
+                          sender: { name: 'Swarm Consensus', role: 'System', avatar: 'SC', color: 'text-emerald-500' },
+                          content: 'Real-time voting initiated. Verifying strategy viability...',
+                          type: 'consensus',
+                          timestamp: new Date().toLocaleTimeString(),
+                          consensusData: {
+                             totalAgents: 3,
+                             agreeCount: 2,
+                             disagreeCount: 1,
+                             votes: [
+                                { agentName: 'Lead Orchestrator', vote: 'agree' },
+                                { agentName: 'Analyst-Omega', vote: 'agree' },
+                                { agentName: 'Crawler-Alpha', vote: 'disagree' }
+                             ]
+                          }
+                       }]);
+                    }}
+                    className="w-full py-3 bg-surface-lighter text-text-dim hover:text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                  >
+                     <Users size={14} /> Build Consensus
+                  </button>
                </div>
             </div>
          </GlassCard>
