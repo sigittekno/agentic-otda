@@ -11,7 +11,8 @@ import {
   Activity,
   ChevronRight,
   Circle,
-  Hash
+  Hash,
+  X
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -29,6 +30,7 @@ interface SwarmMessage {
 }
 
 export const SwarmChat: React.FC = () => {
+  const [selectedAgent, setSelectedAgent] = useState<any>(null);
   const [messages, setMessages] = useState<SwarmMessage[]>([
     {
       id: '1',
@@ -113,7 +115,8 @@ export const SwarmChat: React.FC = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
                     key={i} 
-                    className="p-3 rounded-2xl bg-surface-lighter/30 border border-white/5 group hover:border-accent/40 transition-all cursor-pointer"
+                    onClick={() => setSelectedAgent(agent)}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer group ${selectedAgent?.name === agent.name ? 'bg-accent/10 border-accent/40 shadow-lg' : 'bg-surface-lighter/30 border-white/5 hover:border-accent/40'}`}
                  >
                     <div className="flex items-center gap-3">
                        <div className={`w-10 h-10 rounded-xl ${agent.color} flex items-center justify-center text-white shadow-lg`}>
@@ -225,33 +228,103 @@ export const SwarmChat: React.FC = () => {
 
       {/* Task Queue Sidebar */}
       <div className="w-80 flex flex-col gap-6 h-full shrink-0">
-         <GlassCard className="p-6 flex flex-col h-full border-dashed border-white/10 opacity-60">
-            <h3 className="font-bold text-white mb-6 flex items-center gap-2">
-               <MessageSquare size={18} className="text-text-dim" />
-               Current Task Stack
-            </h3>
-            <div className="space-y-3">
-               {[
-                 { title: 'Search News SE Asia', status: 'In Progress', id: 'T-102' },
-                 { title: 'Extract Energy Trends', status: 'Pending', id: 'T-103' },
-                 { title: 'Risk Assessment (PH)', status: 'Queued', id: 'T-104' },
-               ].map((t, i) => (
-                 <div key={i} className="p-4 rounded-2xl bg-surface-lighter/20 border border-white/5">
-                    <div className="flex justify-between items-start mb-2">
-                       <span className="text-[10px] font-mono text-text-dim">{t.id}</span>
-                       <span className="text-[9px] font-black text-accent uppercase tracking-tighter">{t.status}</span>
-                    </div>
-                    <p className="text-xs font-bold text-white mb-1">{t.title}</p>
-                 </div>
-               ))}
-            </div>
-            
-            <div className="mt-auto p-4 rounded-2xl bg-black/40 border border-white/5">
-               <p className="text-[10px] text-text-dim italic leading-relaxed">
-                  "Swarm protocols ensure high fault tolerance. If an agent fails, tasks are automatically re-routed to the next available compute node."
-               </p>
-            </div>
-         </GlassCard>
+         <AnimatePresence mode="wait">
+            {selectedAgent ? (
+               <motion.div
+                  key="inspector"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="h-full"
+               >
+                  <GlassCard className="p-6 flex flex-col h-full border-accent/30 relative">
+                     <button 
+                        onClick={() => setSelectedAgent(null)}
+                        className="absolute top-4 right-4 p-1 rounded-lg bg-surface-lighter text-text-dim hover:text-white"
+                     >
+                        <X size={14} />
+                     </button>
+                     
+                     <div className={`w-16 h-16 rounded-3xl ${selectedAgent.color} flex items-center justify-center text-white mb-4 shadow-xl`}>
+                        <selectedAgent.icon size={32} />
+                     </div>
+                     
+                     <h3 className="text-xl font-black text-white mb-1 uppercase tracking-tight">{selectedAgent.name}</h3>
+                     <p className="text-[10px] font-bold text-accent uppercase tracking-widest mb-6">{selectedAgent.status} Mode</p>
+                     
+                     <div className="space-y-6 flex-1 overflow-y-auto scrollbar-hide">
+                        <div>
+                           <p className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                              <Cpu size={12} /> Core Directive
+                           </p>
+                           <p className="text-xs text-text-main leading-relaxed italic">
+                              "Optimizing for high-fidelity {selectedAgent.status.toLowerCase()} while maintaining strictly asynchronous communication protocols."
+                           </p>
+                        </div>
+
+                        <div>
+                           <p className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-2">Capabilities</p>
+                           <div className="flex flex-wrap gap-2">
+                              {['Web Search', 'JSON Extraction', 'Semantic Analysis', 'Tool Invocation'].map(tag => (
+                                 <span key={tag} className="px-2 py-1 rounded-md bg-white/5 border border-white/5 text-[9px] text-text-dim">
+                                    {tag}
+                                 </span>
+                              ))}
+                           </div>
+                        </div>
+
+                        <div className="p-4 rounded-2x border border-dashed border-emerald-500/20 bg-emerald-500/5">
+                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-2">System Health</p>
+                            <div className="grid grid-cols-2 gap-2 text-[10px]">
+                               <span className="text-emerald-500/60">Memory: 14%</span>
+                               <span className="text-emerald-500/60">Success: 99.8%</span>
+                            </div>
+                        </div>
+                     </div>
+
+                     <button className="w-full py-3 bg-surface-lighter hover:bg-white/10 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all mt-6">
+                        Re-Initialize Agent
+                     </button>
+                  </GlassCard>
+               </motion.div>
+            ) : (
+               <motion.div
+                  key="queue"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="h-full"
+               >
+                  <GlassCard className="p-6 flex flex-col h-full border-dashed border-white/10 opacity-60">
+                     <h3 className="font-bold text-white mb-6 flex items-center gap-2">
+                        <MessageSquare size={18} className="text-text-dim" />
+                        Current Task Stack
+                     </h3>
+                     <div className="space-y-3">
+                        {[
+                          { title: 'Search News SE Asia', status: 'In Progress', id: 'T-102' },
+                          { title: 'Extract Energy Trends', status: 'Pending', id: 'T-103' },
+                          { title: 'Risk Assessment (PH)', status: 'Queued', id: 'T-104' },
+                        ].map((t, i) => (
+                          <div key={i} className="p-4 rounded-2xl bg-surface-lighter/20 border border-white/5">
+                             <div className="flex justify-between items-start mb-2">
+                                <span className="text-[10px] font-mono text-text-dim">{t.id}</span>
+                                <span className="text-[9px] font-black text-accent uppercase tracking-tighter">{t.status}</span>
+                             </div>
+                             <p className="text-xs font-bold text-white mb-1">{t.title}</p>
+                          </div>
+                        ))}
+                     </div>
+                     
+                     <div className="mt-auto p-4 rounded-2xl bg-black/40 border border-white/5">
+                        <p className="text-[10px] text-text-dim italic leading-relaxed">
+                           "Swarm protocols ensure high fault tolerance. If an agent fails, tasks are automatically re-routed."
+                        </p>
+                     </div>
+                  </GlassCard>
+               </motion.div>
+            )}
+         </AnimatePresence>
       </div>
     </div>
   );

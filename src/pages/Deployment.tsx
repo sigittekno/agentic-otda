@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Zap, 
   Clock, 
@@ -11,7 +11,10 @@ import {
   Trash2,
   Copy,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  X,
+  Database,
+  ArrowRight
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -47,6 +50,35 @@ export const Deployment: React.FC = () => {
   ]);
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newTrigger, setNewTrigger] = useState({
+    name: '',
+    workflow: 'General-Agent',
+    type: 'cron' as 'cron' | 'webhook',
+    config: ''
+  });
+
+  const handleCreate = () => {
+    if (!newTrigger.name || !newTrigger.config) return;
+    
+    const trigger: Trigger = {
+      id: Date.now().toString(),
+      name: newTrigger.name,
+      workflow: newTrigger.workflow,
+      type: newTrigger.type,
+      config: newTrigger.config,
+      status: 'active',
+      url: newTrigger.type === 'webhook' ? `https://api.agentic.ai/hooks/${Math.random().toString(36).substring(7)}` : undefined
+    };
+
+    setTriggers([trigger, ...triggers]);
+    setShowCreate(false);
+    setNewTrigger({ name: '', workflow: 'General-Agent', type: 'cron', config: '' });
+  };
+
+  const handleDelete = (id: string) => {
+    setTriggers(triggers.filter(t => t.id !== id));
+  };
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -61,7 +93,10 @@ export const Deployment: React.FC = () => {
           <h1 className="text-3xl font-black text-white tracking-tighter">DEPLOYMENT & TRIGGERS</h1>
           <p className="text-text-dim mt-1">Manage autonomous workflow execution and API integrations.</p>
         </div>
-        <button className="px-6 py-2.5 bg-accent text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-accent/20 flex items-center gap-2">
+        <button 
+          onClick={() => setShowCreate(true)}
+          className="px-6 py-2.5 bg-accent text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-accent/20 flex items-center gap-2"
+        >
           <Zap size={14} />
           Create New Trigger
         </button>
@@ -116,7 +151,10 @@ export const Deployment: React.FC = () => {
                    <button className="p-2 rounded-lg bg-surface-lighter text-text-dim hover:text-white transition-colors">
                       <Settings2 size={16} />
                    </button>
-                   <button className="p-2 rounded-lg bg-surface-lighter text-rose-500/50 hover:text-rose-500 transition-colors">
+                   <button 
+                      onClick={() => handleDelete(trigger.id)}
+                      className="p-2 rounded-lg bg-surface-lighter text-rose-500/50 hover:text-rose-500 transition-colors"
+                   >
                       <Trash2 size={16} />
                    </button>
                 </div>
@@ -200,6 +238,108 @@ export const Deployment: React.FC = () => {
            </GlassCard>
         </div>
       </div>
+
+      {/* Create Trigger Modal */}
+      <AnimatePresence>
+        {showCreate && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCreate(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg"
+            >
+              <GlassCard className="p-8 border-accent/30">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-black text-white flex items-center gap-2 tracking-tight">
+                    <Zap className="text-accent" />
+                    NEW AUTONOMOUS TRIGGER
+                  </h3>
+                  <button onClick={() => setShowCreate(false)} className="text-text-dim hover:text-white">
+                     <X size={20} />
+                  </button>
+                </div>
+
+                <div className="space-y-5">
+                  <div>
+                    <label className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-1.5 block">Trigger Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g., Weekly Summary Job"
+                      value={newTrigger.name}
+                      onChange={(e) => setNewTrigger({...newTrigger, name: e.target.value})}
+                      className="w-full bg-surface-lighter border border-border-dim rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-1.5 block">Workflow</label>
+                        <div className="relative">
+                           <Database size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim" />
+                           <select 
+                              value={newTrigger.workflow}
+                              onChange={(e) => setNewTrigger({...newTrigger, workflow: e.target.value})}
+                              className="w-full bg-surface-lighter border border-border-dim rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-accent transition-all appearance-none"
+                           >
+                              <option>Auto-Analyst</option>
+                              <option>Fulfillment Bot</option>
+                              <option>General-Agent</option>
+                           </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-1.5 block">Trigger Type</label>
+                        <div className="flex bg-surface-lighter p-1 rounded-xl border border-border-dim">
+                           <button 
+                             onClick={() => setNewTrigger({...newTrigger, type: 'cron'})}
+                             className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${newTrigger.type === 'cron' ? 'bg-accent text-white' : 'text-text-dim'}`}
+                           >
+                             CRON
+                           </button>
+                           <button 
+                             onClick={() => setNewTrigger({...newTrigger, type: 'webhook'})}
+                             className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${newTrigger.type === 'webhook' ? 'bg-accent text-white' : 'text-text-dim'}`}
+                           >
+                             WEBHOOK
+                           </button>
+                        </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-text-dim uppercase tracking-widest mb-1.5 block">
+                      {newTrigger.type === 'cron' ? 'Cron Expression (UTC)' : 'Expected Method'}
+                    </label>
+                    <input 
+                      type="text" 
+                      placeholder={newTrigger.type === 'cron' ? '0 * * * * (Every hour)' : 'POST / GET'}
+                      value={newTrigger.config}
+                      onChange={(e) => setNewTrigger({...newTrigger, config: e.target.value})}
+                      className="w-full bg-surface-lighter border border-border-dim rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent transition-all font-mono"
+                    />
+                  </div>
+
+                  <button 
+                    onClick={handleCreate}
+                    className="w-full py-4 bg-accent text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 mt-4"
+                  >
+                    Deploy Autonomous Task
+                    <ArrowRight size={14} />
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
