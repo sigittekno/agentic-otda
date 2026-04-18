@@ -12,6 +12,7 @@ import { Workflows } from './pages/Workflows';
 import { Memory } from './pages/Memory';
 import { SwarmChat } from './pages/SwarmChat';
 import { Deployment } from './pages/Deployment';
+import { Secrets } from './pages/Secrets';
 import { Analytics } from './pages/Analytics';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -69,6 +70,10 @@ export default function App() {
           ) : activePage === 'deployment' ? (
             <div className="h-full w-full overflow-y-auto scrollbar-hide">
               <Deployment />
+            </div>
+          ) : activePage === 'secrets' ? (
+            <div className="h-full w-full overflow-hidden">
+              <Secrets />
             </div>
           ) : activePage === 'analytics' ? (
             <div className="h-full w-full overflow-y-auto scrollbar-hide">

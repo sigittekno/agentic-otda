@@ -25,8 +25,14 @@ interface SwarmMessage {
     color: string;
   };
   content: string;
-  type: 'thought' | 'action' | 'delegation' | 'final';
+  type: 'thought' | 'action' | 'delegation' | 'final' | 'consensus';
   timestamp: string;
+  consensusData?: {
+    totalAgents: number;
+    agreeCount: number;
+    disagreeCount: number;
+    votes: { agentName: string; vote: 'agree' | 'disagree' }[];
+  };
 }
 
 export const SwarmChat: React.FC = () => {
@@ -52,6 +58,31 @@ export const SwarmChat: React.FC = () => {
       content: 'Acknowledged. Scouring news syndicates and regional reports. Current queue: 14 sources.',
       type: 'thought',
       timestamp: '14:20:12'
+    },
+    {
+      id: '4',
+      sender: { name: 'Lead Orchestrator', role: 'Coordinator', avatar: 'LO', color: 'text-indigo-400' },
+      content: 'Multi-agent analysis complete. Initiating Consensus Protocol for final validation.',
+      type: 'action',
+      timestamp: '14:20:45'
+    },
+    {
+      id: '5',
+      sender: { name: 'Swarm Consensus', role: 'System', avatar: 'SC', color: 'text-emerald-500' },
+      content: 'Consensus Reached: Solar Energy market in SE Asia shows a 22% growth trajectory for Q3.',
+      type: 'consensus',
+      timestamp: '14:20:50',
+      consensusData: {
+        totalAgents: 4,
+        agreeCount: 3,
+        disagreeCount: 1,
+        votes: [
+          { agentName: 'Lead Orchestrator', vote: 'agree' },
+          { agentName: 'Crawler-Alpha', vote: 'agree' },
+          { agentName: 'Analyst-Omega', vote: 'agree' },
+          { agentName: 'Summarizer-Bot', vote: 'disagree' }
+        ]
+      }
     }
   ]);
 
@@ -182,10 +213,39 @@ export const SwarmChat: React.FC = () => {
                               ? 'bg-accent text-white rounded-tr-none' 
                               : msg.type === 'delegation' 
                                  ? 'bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded-tl-none font-medium italic'
-                                 : 'bg-surface-lighter/50 border border-white/5 text-text-main rounded-tl-none'}
+                                 : msg.type === 'consensus'
+                                    ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-tl-none'
+                                    : 'bg-surface-lighter/50 border border-white/5 text-text-main rounded-tl-none'}
                         `}>
                            {msg.type === 'delegation' && <Hash size={12} className="inline mr-2 opacity-50" />}
                            {msg.content}
+                           
+                           {msg.type === 'consensus' && msg.consensusData && (
+                              <div className="mt-4 p-4 rounded-2xl bg-black/40 border border-white/5 space-y-4">
+                                 <div className="flex items-center justify-between">
+                                    <p className="text-[10px] font-bold text-text-dim uppercase tracking-[0.2em]">Consensus Vote Result</p>
+                                    <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest px-2 py-0.5 bg-emerald-500/10 rounded">Passed</span>
+                                 </div>
+                                 <div className="flex gap-1 h-3 rounded-full overflow-hidden bg-surface-lighter border border-white/5">
+                                    <div 
+                                       className="h-full bg-emerald-500 transition-all duration-1000" 
+                                       style={{ width: `${(msg.consensusData.agreeCount / msg.consensusData.totalAgents) * 100}%` }} 
+                                    />
+                                    <div 
+                                       className="h-full bg-rose-500 transition-all duration-1000" 
+                                       style={{ width: `${(msg.consensusData.disagreeCount / msg.consensusData.totalAgents) * 100}%` }} 
+                                    />
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-2">
+                                    {msg.consensusData.votes.map((v, idx) => (
+                                       <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+                                          <span className="text-[9px] text-text-dim truncate">{v.agentName}</span>
+                                          <div className={`w-1.5 h-1.5 rounded-full ${v.vote === 'agree' ? 'bg-emerald-500 shadow-[0_0_5px_#10b981]' : 'bg-rose-500 shadow-[0_0_5px_#f43f5e]'}`} />
+                                       </div>
+                                    ))}
+                                 </div>
+                              </div>
+                           )}
                            
                            {msg.type === 'thought' && (
                               <div className="mt-2 flex gap-1">

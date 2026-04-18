@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Activity,
   Zap,
-  MessageSquare
+  MessageSquare,
+  Key
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { id: 'agents', label: 'Agents', icon: Users },
   { id: 'swarm', label: 'Swarm Chat', icon: MessageSquare },
   { id: 'deployment', label: 'Deployment', icon: Zap },
+  { id: 'secrets', label: 'Secrets', icon: Key },
   { id: 'analytics', label: 'Analytics', icon: Activity },
   { id: 'memory', label: 'Memory', icon: Database },
   { id: 'logs', label: 'Logs', icon: Terminal },
