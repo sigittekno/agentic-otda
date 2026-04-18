@@ -21,7 +21,10 @@ import {
   ShieldCheck,
   ChevronRight,
   Bot,
-  Briefcase
+  Briefcase,
+  Upload,
+  Image as ImageIcon,
+  Database
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -30,6 +33,7 @@ interface Agent {
   name: string;
   role: string;
   avatar: string;
+  avatarType?: 'initials' | 'icon' | 'image';
   color: string;
   model: string;
   capabilities: string[];
@@ -92,16 +96,38 @@ export const Agents: React.FC = () => {
     name: '',
     role: '',
     model: 'Gemini 2.0 Flash',
-    prompt: ''
+    prompt: '',
+    avatarType: 'initials' as 'initials' | 'icon' | 'image',
+    avatarValue: ''
   });
+
+  const predefinedIcons = [
+    { id: 'Bot', icon: Bot },
+    { id: 'Cpu', icon: Cpu },
+    { id: 'Terminal', icon: Terminal },
+    { id: 'Activity', icon: Activity },
+    { id: 'Globe', icon: Globe },
+    { id: 'ShieldCheck', icon: ShieldCheck },
+    { id: 'Zap', icon: Zap },
+    { id: 'Database', icon: Database }
+  ];
 
   const handleCreate = () => {
     if (!newAgent.name || !newAgent.role) return;
+    
+    let finalAvatar = '';
+    if (newAgent.avatarType === 'initials') {
+      finalAvatar = newAgent.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    } else {
+      finalAvatar = newAgent.avatarValue;
+    }
+
     const agent: Agent = {
       id: Date.now().toString(),
       name: newAgent.name,
       role: newAgent.role,
-      avatar: newAgent.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+      avatar: finalAvatar,
+      avatarType: newAgent.avatarType,
       color: 'bg-accent',
       model: newAgent.model,
       capabilities: ['General AI', 'Context Awareness'],
@@ -115,7 +141,25 @@ export const Agents: React.FC = () => {
     };
     setAgents([...agents, agent]);
     setShowCreate(false);
-    setNewAgent({ name: '', role: '', model: 'Gemini 2.0 Flash', prompt: '' });
+    setNewAgent({ 
+      name: '', 
+      role: '', 
+      model: 'Gemini 2.0 Flash', 
+      prompt: '', 
+      avatarType: 'initials', 
+      avatarValue: '' 
+    });
+  };
+
+  const renderAvatar = (agent: Agent, size: number = 24, fontSize: string = 'text-xl') => {
+    if (agent.avatarType === 'image') {
+       return <img src={agent.avatar} className="w-full h-full object-cover" referrerPolicy="no-referrer" />;
+    }
+    if (agent.avatarType === 'icon') {
+       const IconObj = predefinedIcons.find(i => i.id === agent.avatar)?.icon;
+       return IconObj ? <IconObj size={size} /> : <span className={fontSize}>{agent.avatar}</span>;
+    }
+    return <span className={fontSize}>{agent.avatar}</span>;
   };
 
   const filteredAgents = agents.filter(a => 
@@ -188,8 +232,8 @@ export const Agents: React.FC = () => {
                   </div>
 
                   <div className="flex items-start gap-4 mb-6">
-                    <div className={`w-14 h-14 rounded-2xl ${agent.color} flex items-center justify-center text-white text-xl font-black shadow-xl shrink-0 group-hover:scale-110 transition-transform duration-500`}>
-                      {agent.avatar}
+                    <div className={`w-14 h-14 rounded-2xl ${agent.color} flex items-center justify-center text-white shadow-xl shrink-0 group-hover:scale-110 transition-transform duration-500 overflow-hidden`}>
+                      {renderAvatar(agent, 28, 'text-xl')}
                     </div>
                     <div>
                       <h3 className="text-lg font-black text-white leading-tight mb-0.5">{agent.name}</h3>
@@ -248,8 +292,8 @@ export const Agents: React.FC = () => {
               </button>
 
               <div className="flex flex-col items-center text-center pt-8">
-                <div className={`w-28 h-28 rounded-3xl ${selectedAgent.color} flex items-center justify-center text-white text-4xl font-black mb-6 shadow-2xl ring-4 ring-white/5`}>
-                  {selectedAgent.avatar}
+                <div className={`w-28 h-28 rounded-3xl ${selectedAgent.color} flex items-center justify-center text-white mb-6 shadow-2xl ring-4 ring-white/5 overflow-hidden`}>
+                  {renderAvatar(selectedAgent, 56, 'text-4xl font-black')}
                 </div>
                 <h2 className="text-3xl font-black text-white tracking-tight">{selectedAgent.name}</h2>
                 <p className="text-xs font-bold text-accent uppercase tracking-[0.3em] mt-2 mb-8">{selectedAgent.role}</p>
@@ -479,12 +523,82 @@ export const Agents: React.FC = () => {
                        </div>
                     </div>
 
+                    <div className="space-y-4 pt-2">
+                        <label className="text-[10px] font-bold text-text-dim uppercase tracking-widest pl-1">Visual Identity (Avatar)</label>
+                        <div className="flex items-center gap-6 p-4 bg-surface-lighter/50 rounded-2xl border border-white/5">
+                           <div className={`w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-white text-xl font-black shadow-xl overflow-hidden`}>
+                              {newAgent.avatarType === 'initials' ? (
+                                 newAgent.name ? newAgent.name.split(' ').map(n => n[0]).join('').toUpperCase() : '?'
+                              ) : newAgent.avatarType === 'icon' ? (
+                                 (() => {
+                                    const IconObj = predefinedIcons.find(i => i.id === newAgent.avatarValue)?.icon;
+                                    return IconObj ? <IconObj size={32} /> : <Bot size={32} />;
+                                 })()
+                              ) : (
+                                 newAgent.avatarValue ? (
+                                    <img src={newAgent.avatarValue} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                 ) : <ImageIcon size={32} className="opacity-40" />
+                              )}
+                           </div>
+                           
+                           <div className="flex-1 space-y-3">
+                              <div className="flex gap-1 p-1 bg-black/20 rounded-xl w-fit">
+                                 {[
+                                    { id: 'initials', label: 'Initials' },
+                                    { id: 'icon', label: 'Icon' },
+                                    { id: 'image', label: 'Upload' }
+                                 ].map(t => (
+                                    <button 
+                                       key={t.id}
+                                       type="button"
+                                       onClick={() => setNewAgent({...newAgent, avatarType: t.id as any})}
+                                       className={`px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all ${newAgent.avatarType === t.id ? 'bg-accent text-white shadow-lg' : 'text-text-dim hover:text-white'}`}
+                                    >
+                                       {t.label}
+                                    </button>
+                                 ))}
+                              </div>
+
+                              {newAgent.avatarType === 'icon' && (
+                                 <div className="flex flex-wrap gap-2">
+                                    {predefinedIcons.map(item => (
+                                       <button 
+                                          key={item.id}
+                                          type="button"
+                                          onClick={() => setNewAgent({...newAgent, avatarValue: item.id})}
+                                          className={`p-2 rounded-lg border transition-all ${newAgent.avatarValue === item.id ? 'bg-accent text-white border-accent' : 'bg-surface-lighter text-text-dim border-white/5 hover:border-white/20'}`}
+                                       >
+                                          <item.icon size={16} />
+                                       </button>
+                                    ))}
+                                 </div>
+                              )}
+
+                              {newAgent.avatarType === 'image' && (
+                                 <div className="relative group">
+                                    <input 
+                                       type="text"
+                                       placeholder="Paste image URL..."
+                                       value={newAgent.avatarValue}
+                                       onChange={(e) => setNewAgent({...newAgent, avatarValue: e.target.value})}
+                                       className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white focus:outline-none focus:border-accent transition-all"
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dim pointer-events-none">
+                                       <Upload size={12} />
+                                    </div>
+                                 </div>
+                              )}
+                           </div>
+                        </div>
+                     </div>
+
                     <div className="space-y-2">
                        <label className="text-[10px] font-bold text-text-dim uppercase tracking-widest pl-1">Cognitive Model</label>
                        <div className="grid grid-cols-2 gap-2">
                           {['Gemini 2.0 Flash', 'Gemini 1.5 Pro', 'OpenAI GPT-4o', 'Claude 3.5 Sonnet'].map(m => (
                              <button 
                                 key={m}
+                                type="button"
                                 onClick={() => setNewAgent({...newAgent, model: m})}
                                 className={`py-3 px-4 rounded-xl border text-[10px] font-bold transition-all ${newAgent.model === m ? 'bg-accent text-white border-accent shadow-lg shadow-accent/30' : 'bg-surface-lighter text-text-dim border-white/5 hover:border-white/20'}`}
                              >
