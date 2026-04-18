@@ -14,6 +14,7 @@ import { SwarmChat } from './pages/SwarmChat';
 import { Deployment } from './pages/Deployment';
 import { Secrets } from './pages/Secrets';
 import { Analytics } from './pages/Analytics';
+import { Agents } from './pages/Agents';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -62,6 +63,10 @@ export default function App() {
           ) : activePage === 'workflows' ? (
             <div className="h-full max-w-[1200px] mx-auto overflow-hidden">
               <Workflows />
+            </div>
+          ) : activePage === 'agents' ? (
+            <div className="h-full w-full overflow-hidden">
+              <Agents />
             </div>
           ) : activePage === 'swarm' ? (
             <div className="h-full w-full overflow-hidden">
