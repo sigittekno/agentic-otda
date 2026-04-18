@@ -43,7 +43,9 @@ import {
   Shield,
   Clock,
   HardDrive,
-  Terminal
+  Terminal,
+  Share2,
+  Users
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import 'reactflow/dist/style.css';
@@ -51,10 +53,15 @@ import { WorkflowStep, WorkflowEdge } from '../../types/agent';
 import { GlassCard } from '../common/GlassCard';
 
 const ICON_MAP: Record<string, any> = {
-  Globe, Cpu, Mail, Webhook, Search, MousePointer2, FileText, Circle, Hash, GitBranch, Zap, UserCheck, Eye, Clock, Shield, HardDrive, Terminal
+  Globe, Cpu, Mail, Webhook, Search, MousePointer2, FileText, Circle, Hash, GitBranch, Zap, UserCheck, Eye, Clock, Shield, HardDrive, Terminal, MessageSquare, Users, Share2
 };
 
 const AVAILABLE_TOOLS = [
+  { group: 'Triggers', items: [
+    { type: 'trigger', label: 'Schedule (Cron)', icon: 'Clock' },
+    { type: 'trigger', label: 'Webhook Ingest', icon: 'Globe' },
+    { type: 'trigger', label: 'Discord Event', icon: 'Zap' },
+  ]},
   { group: 'Browser', items: [
     { type: 'action', label: 'Navigate to URL', icon: 'Globe' },
     { type: 'action', label: 'Click Element', icon: 'MousePointer2' },
@@ -64,6 +71,11 @@ const AVAILABLE_TOOLS = [
     { type: 'action', label: 'AI Summarize', icon: 'Cpu' },
     { type: 'action', label: 'Extract Entities', icon: 'FileText' },
     { type: 'condition', label: 'Intent Filter', icon: 'Cpu' },
+  ]},
+  { group: 'Swarm', items: [
+    { type: 'action', label: 'Swarm Delegation', icon: 'Users' },
+    { type: 'action', label: 'Broadcast Message', icon: 'MessageSquare' },
+    { type: 'action', label: 'Agent Handover', icon: 'Share2' },
   ]},
   { group: 'Logic', items: [
     { type: 'logic', label: 'Condition (IF)', icon: 'GitBranch' },

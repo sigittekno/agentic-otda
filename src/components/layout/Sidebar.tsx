@@ -14,7 +14,10 @@ import {
   Wrench, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Activity,
+  Zap,
+  MessageSquare
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -30,6 +33,9 @@ const NAV_ITEMS = [
   { id: 'tasks', label: 'Tasks', icon: ClipboardList },
   { id: 'workflows', label: 'Workflows', icon: GitBranch },
   { id: 'agents', label: 'Agents', icon: Users },
+  { id: 'swarm', label: 'Swarm Chat', icon: MessageSquare },
+  { id: 'deployment', label: 'Deployment', icon: Zap },
+  { id: 'analytics', label: 'Analytics', icon: Activity },
   { id: 'memory', label: 'Memory', icon: Database },
   { id: 'logs', label: 'Logs', icon: Terminal },
   { id: 'tools', label: 'Tools', icon: Wrench },

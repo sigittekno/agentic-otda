@@ -10,6 +10,9 @@ import { LogViewer } from './components/dashboard/LogViewer';
 import { MemoryPanel } from './components/dashboard/MemoryPanel';
 import { Workflows } from './pages/Workflows';
 import { Memory } from './pages/Memory';
+import { SwarmChat } from './pages/SwarmChat';
+import { Deployment } from './pages/Deployment';
+import { Analytics } from './pages/Analytics';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -58,6 +61,18 @@ export default function App() {
           ) : activePage === 'workflows' ? (
             <div className="h-full max-w-[1200px] mx-auto overflow-hidden">
               <Workflows />
+            </div>
+          ) : activePage === 'swarm' ? (
+            <div className="h-full w-full overflow-hidden">
+              <SwarmChat />
+            </div>
+          ) : activePage === 'deployment' ? (
+            <div className="h-full w-full overflow-y-auto scrollbar-hide">
+              <Deployment />
+            </div>
+          ) : activePage === 'analytics' ? (
+            <div className="h-full w-full overflow-y-auto scrollbar-hide">
+              <Analytics />
             </div>
           ) : activePage === 'memory' ? (
             <div className="h-full max-w-[1200px] mx-auto overflow-hidden">
