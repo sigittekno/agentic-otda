@@ -377,11 +377,11 @@ export const Agents: React.FC = () => {
                     <div className="space-y-2">
                        <label className="text-[10px] font-bold text-text-dim uppercase tracking-widest pl-1">Cognitive Model</label>
                        <div className="grid grid-cols-2 gap-2">
-                          {['Gemini 2.0 Flash', 'Gemini 1.5 Pro'].map(m => (
+                          {['Gemini 2.0 Flash', 'Gemini 1.5 Pro', 'OpenAI GPT-4o', 'Claude 3.5 Sonnet'].map(m => (
                              <button 
                                 key={m}
                                 onClick={() => setNewAgent({...newAgent, model: m})}
-                                className={`py-3 px-4 rounded-xl border text-xs font-bold transition-all ${newAgent.model === m ? 'bg-accent text-white border-accent shadow-lg shadow-accent/30' : 'bg-surface-lighter text-text-dim border-white/5 hover:border-white/20'}`}
+                                className={`py-3 px-4 rounded-xl border text-[10px] font-bold transition-all ${newAgent.model === m ? 'bg-accent text-white border-accent shadow-lg shadow-accent/30' : 'bg-surface-lighter text-text-dim border-white/5 hover:border-white/20'}`}
                              >
                                 {m}
                              </button>
