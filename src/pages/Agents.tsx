@@ -24,7 +24,11 @@ import {
   Briefcase,
   Upload,
   Image as ImageIcon,
-  Database
+  Database,
+  Hammer,
+  ToggleLeft,
+  ToggleRight,
+  Link
 } from 'lucide-react';
 import { GlassCard } from '../components/common/GlassCard';
 
@@ -52,6 +56,16 @@ export const Agents: React.FC = () => {
   const [sandboxInput, setSandboxInput] = useState('');
   const [sandboxMessages, setSandboxMessages] = useState<{role: 'user' | 'agent', text: string}[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [showToolLibrary, setShowToolLibrary] = useState(false);
+
+  const toolLibrary = [
+    { id: 'search', name: 'Google Search', description: 'Real-time web access' },
+    { id: 'code', name: 'Code Sandbox', description: 'Execute JS/Python' },
+    { id: 'file', name: 'File Browser', description: 'Read/Write to disk' },
+    { id: 'vision', name: 'Vision AI', description: 'Analyze images & video' },
+    { id: 'memory', name: 'Vector Memory', description: 'Long-term context recall' },
+    { id: 'mail', name: 'SMTP Proxy', description: 'Send/Receive emails' },
+  ];
 
   const [agents, setAgents] = useState<Agent[]>([
     {
@@ -160,6 +174,52 @@ export const Agents: React.FC = () => {
        return IconObj ? <IconObj size={size} /> : <span className={fontSize}>{agent.avatar}</span>;
     }
     return <span className={fontSize}>{agent.avatar}</span>;
+  };
+
+  const handleToggleTool = (agentId: string, toolId: string) => {
+    setAgents(prev => prev.map(a => {
+      if (a.id === agentId) {
+        return {
+          ...a,
+          tools: a.tools.map(t => t.id === toolId ? { ...t, enabled: !t.enabled } : t)
+        };
+      }
+      return a;
+    }));
+    
+    // Update selected agent reference if it's the one being modified
+    if (selectedAgent?.id === agentId) {
+       setSelectedAgent(prev => {
+         if (!prev) return null;
+         return {
+           ...prev,
+           tools: prev.tools.map(t => t.id === toolId ? { ...t, enabled: !t.enabled } : t)
+         };
+       });
+    }
+  };
+
+  const handleAddTool = (agentId: string, tool: typeof toolLibrary[0]) => {
+     setAgents(prev => prev.map(a => {
+        if (a.id === agentId && !a.tools.find(t => t.id === tool.id)) {
+           return {
+              ...a,
+              tools: [...a.tools, { ...tool, enabled: true }]
+           };
+        }
+        return a;
+     }));
+
+     if (selectedAgent?.id === agentId && !selectedAgent.tools.find(t => t.id === tool.id)) {
+        setSelectedAgent(prev => {
+           if (!prev) return null;
+           return {
+              ...prev,
+              tools: [...prev.tools, { ...tool, enabled: true }]
+           };
+        });
+     }
+     setShowToolLibrary(false);
   };
 
   const filteredAgents = agents.filter(a => 
@@ -429,6 +489,76 @@ export const Agents: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div>
+                   <div className="flex justify-between items-center mb-4">
+                      <h4 className="text-[10px] font-bold text-text-dim uppercase tracking-[.3em] flex items-center gap-2">
+                        <Hammer size={12} className="text-accent" /> Mission Toolbox
+                      </h4>
+                      <button 
+                        onClick={() => setShowToolLibrary(true)}
+                        className="text-[10px] font-bold text-accent uppercase tracking-widest hover:underline"
+                      >
+                         + Add Tool
+                      </button>
+                   </div>
+                   
+                   <div className="space-y-2">
+                      {selectedAgent.tools.map(tool => (
+                         <div key={tool.id} className="p-3 rounded-xl bg-surface-lighter/30 border border-white/5 flex items-center justify-between group">
+                            <div className="flex items-center gap-3">
+                               <div className={`p-2 rounded-lg ${tool.enabled ? 'bg-accent/10 text-accent' : 'bg-white/5 text-text-dim/40'}`}>
+                                  {tool.id === 'search' ? <Globe size={14} /> : tool.id === 'code' ? <Code size={14} /> : <Link size={14} />}
+                               </div>
+                               <div>
+                                  <p className={`text-[11px] font-bold ${tool.enabled ? 'text-white' : 'text-text-dim/60'}`}>{tool.name}</p>
+                                  <p className="text-[9px] text-text-dim/40">{tool.description}</p>
+                               </div>
+                            </div>
+                            <button 
+                              onClick={() => handleToggleTool(selectedAgent.id, tool.id)}
+                              className={`transition-all ${tool.enabled ? 'text-accent' : 'text-text-dim/20'}`}
+                            >
+                               {tool.enabled ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
+                            </button>
+                         </div>
+                      ))}
+                   </div>
+
+                   <AnimatePresence>
+                      {showToolLibrary && (
+                         <motion.div 
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: 10 }}
+                           className="mt-4 p-4 rounded-2xl bg-black/40 border border-accent/20 space-y-3"
+                         >
+                            <div className="flex justify-between items-center mb-1">
+                               <p className="text-[10px] font-bold text-white uppercase tracking-widest">Available Modules</p>
+                               <button onClick={() => setShowToolLibrary(false)}><X size={12} className="text-text-dim" /></button>
+                            </div>
+                            <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1 scrollbar-hide">
+                               {toolLibrary.filter(t => !selectedAgent.tools.find(st => st.id === t.id)).map(tool => (
+                                  <button 
+                                    key={tool.id}
+                                    onClick={() => handleAddTool(selectedAgent.id, tool)}
+                                    className="w-full text-left p-3 rounded-xl bg-surface-lighter/50 hover:bg-accent/10 border border-white/5 hover:border-accent/30 transition-all flex items-center justify-between group"
+                                  >
+                                     <div>
+                                        <p className="text-[10px] font-bold text-white group-hover:text-accent transition-colors">{tool.name}</p>
+                                        <p className="text-[8px] text-text-dim leading-tight">{tool.description}</p>
+                                     </div>
+                                     <Plus size={12} className="text-text-dim group-hover:text-accent" />
+                                  </button>
+                               ))}
+                               {toolLibrary.filter(t => !selectedAgent.tools.find(st => st.id === t.id)).length === 0 && (
+                                  <p className="text-[9px] text-text-dim italic py-4 text-center">All library modules active.</p>
+                               )}
+                            </div>
+                         </motion.div>
+                      )}
+                   </AnimatePresence>
                 </div>
 
                 <div>
